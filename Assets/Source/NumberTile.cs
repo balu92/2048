@@ -69,7 +69,7 @@ public class NumberTile : MonoBehaviour
         return $"COLUMN: {Column} ROW: {Row} VALUE: {Value} TEXT: {GetComponentInChildren<UnityEngine.UI.Text>().text}";
     }
 
-    void Update()
+    void LateUpdate()
     {
         if (NeedsScaling) {
             if (Vector3.Distance(gameObject.transform.localScale, Vector3.one) > 0.01f)

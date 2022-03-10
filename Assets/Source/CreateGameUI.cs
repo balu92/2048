@@ -217,7 +217,7 @@ public class CreateGameUI : MonoBehaviour
             CreateRandomTile();
     }
 
-    void Update()
+    void LateUpdate()
     {
         if (Screen.orientation != Orientation)
         {
