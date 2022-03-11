@@ -42,7 +42,12 @@ public class NumberTile : MonoBehaviour
     {
         ValueText.text = Value.ToString();
         TileImage.CrossFadeColor(Value > 2048 ? TileColours[0] : TileColours[Value], 0.016f, true, false);
+
+        if (Value > 4) ValueText.color = NumberColorDark;
     }
+
+    static Color NumberColorDark = new Color(0.98f, 0.96f, 0.95f);
+    static Color NumberColorLight = new Color(0.24f, 0.23f, 0.2f);
 
     public static readonly Dictionary<int, Color> TileColours = new Dictionary<int, Color>()
     {
@@ -71,6 +76,8 @@ public class NumberTile : MonoBehaviour
         gameObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
         ValueText = GetComponentInChildren<UnityEngine.UI.Text>();
+        ValueText.color = NumberColorLight;
+
         TileImage = GetComponent<UnityEngine.UI.Image>();
 
         TileImage.CrossFadeColor(TileColours[2], 0.016f, true, false);
