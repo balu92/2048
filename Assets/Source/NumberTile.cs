@@ -41,9 +41,7 @@ public class NumberTile : MonoBehaviour
     void UpdateValue()
     {
         ValueText.text = Value.ToString();
-        ValueText.SetAllDirty();
         TileImage.CrossFadeColor(Value > 2048 ? TileColours[0] : TileColours[Value], 0.016f, true, false);
-        TileImage.SetAllDirty();
     }
 
     public static readonly Dictionary<int, Color> TileColours = new Dictionary<int, Color>()
@@ -75,13 +73,7 @@ public class NumberTile : MonoBehaviour
         ValueText = GetComponentInChildren<UnityEngine.UI.Text>();
         TileImage = GetComponent<UnityEngine.UI.Image>();
 
-        TileImage.CrossFadeColor(TileColours[2], 0.016f, true, false);//.color = TileColours[2];
-        TileImage.SetAllDirty();
-    }
-
-    public override string ToString()
-    {
-        return $"COLUMN: {Column} ROW: {Row} VALUE: {Value} TEXT: {GetComponentInChildren<UnityEngine.UI.Text>().text}";
+        TileImage.CrossFadeColor(TileColours[2], 0.016f, true, false);
     }
 
     void Update()
