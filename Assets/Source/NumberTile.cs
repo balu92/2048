@@ -125,6 +125,26 @@ public class NumberTile : MonoBehaviour
         UpdateValue();
     }
 
+    public void Move(Goal goal)
+    {
+        MergeWith = goal.IsMerge ? gameUI.Tiles[goal.Column, goal.Row] : null;
+
+        if (goal.IsMerge)
+        {
+            MergeWith.IsMerging = true;
+            IsMerging = true;
+        }
+
+        gameUI.Tiles[Column, Row] = null;
+
+        Destination = gameUI.GetTilePosition(goal.Column, goal.Row);
+
+        Column = goal.Column;
+        Row = goal.Row;
+
+        if (!goal.IsMerge) gameUI.Tiles[Column, Row] = this;
+    }
+
     public void Move(int column, int row, bool merge)
     {
         MergeWith = merge ? gameUI.Tiles[column, row] : null;
@@ -149,15 +169,12 @@ public class NumberTile : MonoBehaviour
 
     public bool MoveLeft()
     {
-        if (Column > 0)
-        {
-            var goal = GetDestinationLeft();
+        var goal = GetDestinationLeft();
 
-            if (Column != goal.Column)
-            {
-                Move(goal.Column, Row, goal.IsMerge);
-                return true;
-            }
+        if (Column != goal.Column)
+        {
+            Move(goal.Column, Row, goal.IsMerge);
+            return true;
         }
         return false;
     }
