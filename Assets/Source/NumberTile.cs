@@ -159,18 +159,18 @@ public class NumberTile : MonoBehaviour
     {
         if (Column > 0)
         {
-            var moves = GetDestinationLeft();
+            var goal = GetDestinationLeft();
 
-            if (Column != moves.Item2)
+            if (Column != goal.Column)
             {
-                Move(moves.Item2, Row, moves.Item1);
+                Move(goal.Column, Row, goal.IsMerge);
                 return true;
             }
         }
         return false;
     }
 
-    public (bool, int) GetDestinationLeft()
+    public Goal GetDestinationLeft()
     {
         int result = Column;
 
@@ -182,34 +182,34 @@ public class NumberTile : MonoBehaviour
             }
             else if (gameUI.Tiles[column, Row].Value != Value)
             {
-                return (false, column + 1);
+                return new Goal(column + 1, Row);
             }
             else if (gameUI.Tiles[column, Row].Value == Value)
             {
                 if (CanBeMerged(column, Row))
-                    return (true, column);
-                return (false, column + 1);
+                    return new Goal(column, Row, true);
+                return new Goal(column + 1, Row);
             }
         }
-        return (false, result);
+        return new Goal(result, Row);
     }
 
     public bool MoveRight()
     {
         if (Column < 3)
         {
-            var moves  = GetDestinationRight();
+            var goal  = GetDestinationRight();
 
-            if (Column != moves.Item2)
+            if (Column != goal.Column)
             {
-                Move(moves.Item2, Row, moves.Item1);
+                Move(goal.Column, Row, goal.IsMerge);
                 return true;
             }
         }
         return false;
     }
 
-    public (bool, int) GetDestinationRight()
+    public Goal GetDestinationRight()
     {
         int result = Column;
         for (int column = Column + 1; column < 4; column++)
@@ -220,34 +220,34 @@ public class NumberTile : MonoBehaviour
             }
             else if (gameUI.Tiles[column, Row].Value != Value)
             {
-                return (false, column - 1);
+                return new Goal(column - 1, Row);
             }
             else if (gameUI.Tiles[column, Row].Value == Value)
             {
                 if (CanBeMerged(column, Row))
-                    return (true, column);
-                return (false, column - 1);
+                    return new Goal(column, Row, true);
+                return new Goal(column - 1, Row);
             }
         }
-        return (false, result);
+        return new Goal(result, Row);
     }
 
     public bool MoveDown()
     {
         if (Row > 0)
         {
-            var moves = GetDestinationDown();
+            var goal = GetDestinationDown();
 
-            if (Row != moves.Item2)
+            if (Row != goal.Row)
             {
-                Move(Column, moves.Item2, moves.Item1);
+                Move(Column, goal.Row, goal.IsMerge);
                 return true;
             }
         }
         return false;
     }
 
-    public (bool, int) GetDestinationDown()
+    public Goal GetDestinationDown()
     {
         int result = Row;
         for (int row = Row - 1; row >= 0; row--)
@@ -258,34 +258,34 @@ public class NumberTile : MonoBehaviour
             }
             else if (gameUI.Tiles[Column, row].Value != Value)
             {
-                return (false, row + 1);
+                return new Goal(Column, row + 1);
             }
             else if (gameUI.Tiles[Column, row].Value == Value)
             {
                 if (CanBeMerged(Column, row))
-                    return (true, row);
-                return (false, row + 1);
+                    return new Goal(Column, row, true);
+                return new Goal(Column, row + 1);
             }
         }
-        return (false, result);
+        return new Goal(Column, result);
     }
 
     public bool MoveUp()
     {
         if (Row < 3)
         {
-            var moves = GetDestinationUp();
+            var goal = GetDestinationUp();
 
-            if (Row != moves.Item2)
+            if (Row != goal.Row)
             {
-                Move(Column, moves.Item2, moves.Item1);
+                Move(Column, goal.Row, goal.IsMerge);
                 return true;
             }
         }
         return false;
     }
 
-    public (bool, int) GetDestinationUp()
+    public Goal GetDestinationUp()
     {
         int result = Row;
         for (int row = Row + 1; row < 4; row++)
@@ -296,15 +296,29 @@ public class NumberTile : MonoBehaviour
             }
             else if (gameUI.Tiles[Column, row].Value != Value)
             {
-                return (false, row - 1);
+                return new Goal(Column, row - 1);
             }
             else if (gameUI.Tiles[Column, row].Value == Value)
             {
                 if (CanBeMerged(Column, row))
-                    return (true, row);
-                return (false, row - 1);
+                    return new Goal(Column, row, true);
+                return new Goal(Column, row - 1);
             }
         }
-        return (false, result);
+        return new Goal(Column, result);
+    }
+
+    public struct Goal
+    {
+        public int Column;
+        public int Row;
+        public bool IsMerge;
+
+        public Goal(int column, int row, bool ismerge = false)
+        {
+            Column = column;
+            Row = row;
+            IsMerge = ismerge;
+        }
     }
 }
