@@ -111,7 +111,7 @@ public class CreateGameUI : MonoBehaviour
         tileObject.GetComponent<RectTransform>().sizeDelta = new Vector2(tileSize, tileSize);
         var txt = tileObject.GetComponentInChildren<UnityEngine.UI.Text>();
         txt.text = value.ToString();
-        txt.fontSize = tileSize / 4;
+        //txt.fontSize = tileSize / 4;
 
         var tile = tileObject.GetComponent<NumberTile>();
         
