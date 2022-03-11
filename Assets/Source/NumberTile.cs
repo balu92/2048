@@ -20,10 +20,13 @@ public class NumberTile : MonoBehaviour
 
     public CreateGameUI gameUI;
 
+    public UnityEngine.UI.Image TileImage;
+    public UnityEngine.UI.Text ValueText;
+
     public int Column;
     public int Row;
 
-    public int value;
+    private int value;
 
     public int Value
     {
@@ -31,9 +34,16 @@ public class NumberTile : MonoBehaviour
         set
         {
             this.value = value;
-            GetComponentInChildren<UnityEngine.UI.Text>().text = value.ToString();
-            GetComponent<UnityEngine.UI.Image>().color = value > 2048 ? TileColours[0] : TileColours[value];
+            UpdateValue();
         }
+    }
+
+    void UpdateValue()
+    {
+        ValueText.text = Value.ToString();
+        ValueText.SetAllDirty();
+        TileImage.CrossFadeColor(Value > 2048 ? TileColours[0] : TileColours[Value], 0.016f, true, false);
+        TileImage.SetAllDirty();
     }
 
     public static readonly Dictionary<int, Color> TileColours = new Dictionary<int, Color>()
@@ -61,7 +71,12 @@ public class NumberTile : MonoBehaviour
     void Start()
     {
         gameObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-        GetComponent<UnityEngine.UI.Image>().color = TileColours[2];
+
+        ValueText = GetComponentInChildren<UnityEngine.UI.Text>();
+        TileImage = GetComponent<UnityEngine.UI.Image>();
+
+        TileImage.CrossFadeColor(TileColours[2], 0.016f, true, false);//.color = TileColours[2];
+        TileImage.SetAllDirty();
     }
 
     public override string ToString()
@@ -69,7 +84,7 @@ public class NumberTile : MonoBehaviour
         return $"COLUMN: {Column} ROW: {Row} VALUE: {Value} TEXT: {GetComponentInChildren<UnityEngine.UI.Text>().text}";
     }
 
-    void LateUpdate()
+    void Update()
     {
         if (NeedsScaling) {
             if (Vector3.Distance(gameObject.transform.localScale, Vector3.one) > 0.01f)
@@ -115,6 +130,7 @@ public class NumberTile : MonoBehaviour
     {
         Value += Value;
         gameUI.CurrentScore += Value;
+        UpdateValue();
     }
 
     public void Move(int column, int row, bool merge)
