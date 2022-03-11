@@ -47,7 +47,8 @@ public class CreateGameUI : MonoBehaviour
 
     void Start()
     {
-        
+        Application.targetFrameRate = Screen.currentResolution.refreshRate;
+
         List<Vector2Int> FreeTiles = new List<Vector2Int>();
 
         var playAreaBkg = Canvas.Instantiate(PlayAreaBackgroundPrefab);
