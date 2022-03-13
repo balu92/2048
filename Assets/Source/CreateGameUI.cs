@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.IO;
 
 public class CreateGameUI : MonoBehaviour
 {
-    long BestScore = 0;
-    long currentScore = 0;
+    long BestScore;
+    long currentScore;
     public long CurrentScore
     {
         get => currentScore;
@@ -56,9 +57,15 @@ public class CreateGameUI : MonoBehaviour
 
     bool Initialized = false;
 
+    string GetSaveFileLocation() => Path.Combine(Application.persistentDataPath, "2048.save");
+    object SaveLoadFileLock = false;
+
     void Start()
     {
         Application.targetFrameRate = Screen.currentResolution.refreshRate;
+        Load();
+
+        Application.quitting += () => Save();
 
         List<Vector2Int> FreeTiles = new List<Vector2Int>();
 
@@ -109,25 +116,67 @@ public class CreateGameUI : MonoBehaviour
         Initialized = true;
     }
 
-    string FormatNumber(int number)
+    const byte SaveVersion = 1;
+
+    void Save()
+    {
+        lock (SaveLoadFileLock)
+        {
+            using (var file = File.Open(GetSaveFileLocation(), FileMode.Create, FileAccess.Write))
+            {
+                file.WriteByte(SaveVersion);
+
+                var bestBytes = System.BitConverter.GetBytes(BestScore);
+                file.Write(System.BitConverter.IsLittleEndian ? bestBytes.Reverse().ToArray() : bestBytes, 0, 8);
+
+                file.Flush();
+                file.Close();
+            }
+        }
+    }
+
+    void Load()
+    {
+        lock (SaveLoadFileLock)
+        {
+            if (File.Exists(GetSaveFileLocation()))
+            {
+                using (var file = File.Open(GetSaveFileLocation(), FileMode.Open, FileAccess.Read))
+                {
+                    byte[] version = new byte[1];
+                    file.Read(version, 0, 1);
+                    if (version[0] == 1)
+                    {
+                        byte[] bestBytes = new byte[8];
+                        file.Read(bestBytes, 0, 8);
+
+                        BestScore = System.BitConverter.ToInt64(System.BitConverter.IsLittleEndian ? bestBytes.Reverse().ToArray() : bestBytes, 0);
+                        CurrentScore = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    public static string FormatNumber(int number)
     {
         string result;
-        if (number > 1000000000) { result = (number / 1000000000f).ToString("###.#") + "b"; }
-        else if (number > 1000000) { result = (number / 1000000f).ToString("###.#") + "m"; }
-        else if (number > 1000) { result = (number / 1000f).ToString("###.#") + "k"; }
+        if (number >= 1000000000) { result = (number / 1000000000f).ToString("###.#") + "b"; }
+        else if (number >= 1000000) { result = (number / 1000000f).ToString("###.#") + "m"; }
+        else if (number >= 1000) { result = (number / 1000f).ToString("###.#") + "k"; }
         else result = number.ToString();
 
         return result;
     }
 
-    string FormatNumber(long number)
+    public static string FormatNumber(long number)
     {
         string result;
-        if (number > 1000000000000000L) { result = (number / 1000000000000000f).ToString("###.#") + "q"; }
-        else if (number > 1000000000000L) { result = (number / 1000000000000f).ToString("###.#") + "t"; }
-        else if (number > 1000000000L) { result = (number / 1000000000f).ToString("###.#") + "b"; }
-        else if (number > 1000000L) { result = (number / 1000000f).ToString("###.#") + "m"; }
-        else if (number > 1000L) { result = (number / 1000f).ToString("###.#") + "k"; }
+        if (number >= 1000000000000000L) { result = (number / 1000000000000000f).ToString("###.#") + "q"; }
+        else if (number >= 1000000000000L) { result = (number / 1000000000000f).ToString("###.#") + "t"; }
+        else if (number >= 1000000000L) { result = (number / 1000000000f).ToString("###.#") + "b"; }
+        else if (number >= 1000000L) { result = (number / 1000000f).ToString("###.#") + "m"; }
+        else if (number >= 1000L) { result = (number / 1000f).ToString("###.#") + "k"; }
         else result = number.ToString();
 
         return result;
