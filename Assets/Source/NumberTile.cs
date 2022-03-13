@@ -41,7 +41,7 @@ public class NumberTile : MonoBehaviour
 
     void UpdateValue()
     {
-        ValueText.text = Value.ToString();
+        ValueText.text = CreateGameUI.FormatNumber(Value);
         TileImage.CrossFadeColor(Value > 2048 ? TileColours[0] : TileColours[Value], 0.016f, true, false);
 
         if (Value > 4) ValueText.color = NumberColorDark;
