@@ -14,7 +14,11 @@ public class CreateGameUI : MonoBehaviour
         set
         {
             currentScore = value;
-            if (currentScore > BestScore) BestScore = currentScore;
+            if (currentScore > BestScore)
+            {
+                BestScore = currentScore;
+                Save();
+            }
             Score.text = $"Best: {FormatNumber(BestScore)}\r\nCurrent: {FormatNumber(currentScore)}";
         }
     }
@@ -63,9 +67,8 @@ public class CreateGameUI : MonoBehaviour
     void Start()
     {
         Application.targetFrameRate = Screen.currentResolution.refreshRate;
-        Load();
 
-        Application.quitting += () => Save();
+        Load();
 
         List<Vector2Int> FreeTiles = new List<Vector2Int>();
 
