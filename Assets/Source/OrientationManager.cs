@@ -12,7 +12,6 @@ public class OrientationManager : MonoBehaviour
     void Start()
     {
         _orientation = Screen.orientation;
-        //InvokeRepeating("CheckForChange", 1, 1);
     }
 
     private static void OnOrientationChanged(ScreenOrientation orientation)

@@ -14,17 +14,23 @@ public class CreateGameUI : MonoBehaviour
         {
             currentScore = value;
             if (currentScore > BestScore) BestScore = currentScore;
-            Score.text = $"Best score: {BestScore}\r\nCurrent score: {currentScore}";
+            Score.text = $"Best: {FormatNumber(BestScore)}\r\nCurrent: {FormatNumber(currentScore)}";
         }
     }
 
+    int ScoreTextSize = 32;
+
     public UnityEngine.UI.Text Score;
+
+    public RectTransform PlayAreaRectTransform;
 
     public OrientationManager OrientationManager;
 
     ScreenOrientation Orientation = ScreenOrientation.Portrait;
 
-    public NumberTile[,] Tiles = new NumberTile[4,4];
+    public NumberTile[,] Tiles = new NumberTile[4, 4];
+
+    public RectTransform[,] TileBackgrounds = new RectTransform[4, 4];
 
     public Canvas Canvas;
 
@@ -32,7 +38,7 @@ public class CreateGameUI : MonoBehaviour
 
     public GameObject TileBackgroundPrefab;
 
-    public GameObject PlayAreaBackgroundPrefab;
+    public GameObject PlayAreaBackground;
 
     public int tolerance = 200;
 
@@ -45,34 +51,51 @@ public class CreateGameUI : MonoBehaviour
 
     bool InputHandled = true;
 
+    int ScreenWidth = 0;
+    int ScreenHeight = 0;
+
+    bool Initialized = false;
+
     void Start()
     {
         Application.targetFrameRate = Screen.currentResolution.refreshRate;
 
         List<Vector2Int> FreeTiles = new List<Vector2Int>();
 
-        var playAreaBkg = Canvas.Instantiate(PlayAreaBackgroundPrefab);
         int bkgsize = (IsPortrait() ? Screen.width : Screen.height);
 
-        bool isPortrait = IsPortrait();
-        playAreaBkg.GetComponent<RectTransform>().sizeDelta = new Vector2(bkgsize, bkgsize);
-        playAreaBkg.transform.position = new Vector2(0, 0 + bkgsize / (isPortrait ? 6 : 4));
-        playAreaBkg.transform.SetParent(Canvas.transform, false);
+        PlayAreaRectTransform.sizeDelta = new Vector2(bkgsize, bkgsize);
+        PlayAreaRectTransform.anchoredPosition = Vector2.zero;
+        PlayAreaRectTransform.anchorMax = Vector2.zero;
+        PlayAreaRectTransform.anchorMin = Vector2.zero;
+        PlayAreaBackground.transform.SetParent(Canvas.transform, false);
+
+        Vector2 topleft = new Vector2(0, 1);
+        Score.rectTransform.anchoredPosition = Vector2.zero;
+        Score.rectTransform.anchorMax = topleft;
+        Score.rectTransform.anchorMin = topleft;
+        Score.rectTransform.position = Vector3.zero;
+
+        ScoreTextSize = Mathf.RoundToInt(Screen.dpi / 4);
+
+        OnResolutionChanged();
 
         for (int i = 0; i < 4; i++)
         {
             for (int j = 0; j < 4; j++)
             {
                 FreeTiles.Add(new Vector2Int(i, j));
-                var tilebkg = Canvas.Instantiate(TileBackgroundPrefab);
+                var tilebkg = Instantiate(TileBackgroundPrefab);
 
-                tilebkg.transform.position = GetTilePosition(i, j);
-                tilebkg.transform.SetParent(Canvas.transform, false);
+                tilebkg.transform.SetParent(PlayAreaBackground.transform, false);
 
                 int tileSize = GetTileSize();
 
-                tilebkg.GetComponent<RectTransform>().sizeDelta = new Vector2(tileSize, tileSize);
-                //CreateTile(i, j, 2);
+                var tileRect = tilebkg.GetComponent<RectTransform>();
+                tileRect.sizeDelta = new Vector2(tileSize, tileSize);
+                tileRect.anchoredPosition = GetTilePosition(i, j);
+
+                TileBackgrounds[i,j] = tileRect;
             }
         }
 
@@ -82,6 +105,8 @@ public class CreateGameUI : MonoBehaviour
             CreateTile(FreeTiles[rand].x, FreeTiles[rand].y, 2);
             FreeTiles.RemoveAt(rand);
         }
+
+        Initialized = true;
     }
 
     public void CreateRandomTile(int value = 2)
@@ -102,17 +127,19 @@ public class CreateGameUI : MonoBehaviour
 
     NumberTile CreateTile(int column, int row, int value)
     {
-        var tileObject = Canvas.Instantiate(NumberTilePrefab);
+        var tileObject = Instantiate(NumberTilePrefab);
 
-        tileObject.transform.position = GetTilePosition(column, row);
-        tileObject.transform.SetParent(Canvas.transform, false);
+        var tileRectTransform = tileObject.GetComponent<RectTransform>();
+        tileRectTransform.anchorMin = Vector2.zero;
+        tileRectTransform.anchorMax = Vector2.zero;
+        tileRectTransform.anchoredPosition = GetTilePosition(column, row);
+        tileObject.transform.SetParent(PlayAreaBackground.transform, false);
 
         int tileSize = GetTileSize();
 
         tileObject.GetComponent<RectTransform>().sizeDelta = new Vector2(tileSize, tileSize);
         var txt = tileObject.GetComponentInChildren<UnityEngine.UI.Text>();
-        txt.text = value.ToString();
-        //txt.fontSize = tileSize / 4;
+        txt.text = FormatNumber(value);
 
         var tile = tileObject.GetComponent<NumberTile>();
         
@@ -129,25 +156,69 @@ public class CreateGameUI : MonoBehaviour
         return tile;
     }
 
-    public int GetTileSize() => Mathf.RoundToInt((IsPortrait() ? Screen.width : Screen.height) * 0.2125f);
+    public int GetTileSize() => Mathf.RoundToInt(PlayAreaRectTransform.sizeDelta.x * 0.2125f);
 
-    public bool IsPortrait() => (Orientation & (ScreenOrientation.Portrait | ScreenOrientation.PortraitUpsideDown)) > 0;// Orientation == ScreenOrientation.Portrait || Orientation == ScreenOrientation.PortraitUpsideDown;
+    public bool IsPortrait() => Screen.width < Screen.height;
 
-    public Vector3 GetTilePosition(int column, int row)
+    void OnResolutionChanged()
     {
+        if (!Initialized) return;
+
         bool isPortrait = IsPortrait();
 
+        Score.fontSize = ScoreTextSize;
+        Score.rectTransform.sizeDelta = new Vector2(ScoreTextSize * 6.5f, ScoreTextSize * 2);
+        Score.rectTransform.anchoredPosition = new Vector2(0, -(ScoreTextSize * 2));
+
+        int PlayAreaSize = Mathf.RoundToInt(Mathf.Min(IsPortrait() ? Screen.width : Screen.height, IsPortrait() ? Screen.height - Score.rectTransform.sizeDelta.y : Screen.width - Score.rectTransform.sizeDelta.x));
+
+        int emptySpace = ((isPortrait ? Screen.height : Screen.width) - ((isPortrait ? ScoreTextSize * 2 : Mathf.RoundToInt(ScoreTextSize * 6.5f)) + PlayAreaSize)) / 2;
+
+        if (isPortrait)
+        {
+            PlayAreaRectTransform.anchorMax = new Vector2(0, 1);
+            PlayAreaRectTransform.anchorMin = new Vector2(0, 1);
+
+            PlayAreaRectTransform.anchoredPosition = new Vector2(0, -(emptySpace + PlayAreaSize + ScoreTextSize * 2));
+        }
+        else
+        {
+            PlayAreaRectTransform.anchorMax = new Vector2(0, 0);
+            PlayAreaRectTransform.anchorMin = new Vector2(0, 0);
+
+            PlayAreaRectTransform.anchoredPosition = new Vector2(emptySpace + ScoreTextSize * 6.5f, 0);
+        }
+
+        PlayAreaRectTransform.sizeDelta = new Vector2(PlayAreaSize, PlayAreaSize);
+
         int TileSize = GetTileSize();
-        int PlayAreaSize = isPortrait ? Screen.width : Screen.height;
+        for (int column = 0; column < 4; column++)
+        {
+            for (int row = 0; row < 4; row++)
+            {
+                TileBackgrounds[column, row].anchoredPosition = GetTilePosition(column, row);
+                TileBackgrounds[column, row].sizeDelta = new Vector2(TileSize, TileSize);
 
-        var Margin = Mathf.RoundToInt(PlayAreaSize * 0.03f);
+                if (Tiles[column, row] != null)
+                {
+                    Tiles[column, row].Destination = GetTilePosition(column, row);
+                    Tiles[column, row].rectTransform.sizeDelta = new Vector2(TileSize, TileSize);
+                }
+            }
+        }
+    }
 
-        int x = Margin + column * (TileSize + Margin) + TileSize / 2;
-        int y = Margin + row * (TileSize + Margin) + TileSize / 2;
-        x -= PlayAreaSize / (isPortrait ? 2 : 3);
-        y -= PlayAreaSize / (isPortrait ? 3 : 2);
+    public Vector2 GetTilePosition(int column, int row)
+    {
+        int TileSize = GetTileSize();
+        float PlayAreaSize = PlayAreaRectTransform.sizeDelta.x;
 
-        return new Vector3(x, y, 0);
+        float Margin = PlayAreaSize * 0.03f;
+
+        float x = Margin + TileSize/2 + (TileSize + Margin) * column;
+        float y = Margin + TileSize/2 + (TileSize + Margin) * row;
+
+        return new Vector2(x, y);
     }
 
     void MoveTilesLeft()
@@ -218,8 +289,17 @@ public class CreateGameUI : MonoBehaviour
             CreateRandomTile();
     }
 
-    void LateUpdate()
+    bool CheckResolutionChange() => ScreenWidth != Screen.width || ScreenHeight != Screen.height;
+
+    void Update()
     {
+        if (CheckResolutionChange())
+        {
+            ScreenWidth = Screen.width;
+            ScreenHeight = Screen.height;
+            OnResolutionChanged();
+        }
+
         if (Screen.orientation != Orientation)
         {
             Orientation = Screen.orientation;

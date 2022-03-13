@@ -22,6 +22,7 @@ public class NumberTile : MonoBehaviour
 
     public UnityEngine.UI.Image TileImage;
     public UnityEngine.UI.Text ValueText;
+    public RectTransform rectTransform;
 
     public int Column;
     public int Row;
@@ -75,6 +76,8 @@ public class NumberTile : MonoBehaviour
     {
         gameObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
+        rectTransform = GetComponent<RectTransform>();
+
         ValueText = GetComponentInChildren<UnityEngine.UI.Text>();
         ValueText.color = NumberColorLight;
 
@@ -102,7 +105,7 @@ public class NumberTile : MonoBehaviour
         }
         else if ((dist = Vector3.Distance(gameObject.transform.localPosition, Destination)) > 0.05f)
         {
-            gameObject.transform.localPosition = Vector3.Lerp(gameObject.transform.localPosition, Destination, Time.deltaTime * 32f);
+            rectTransform.anchoredPosition = Vector3.Lerp(rectTransform.anchoredPosition, Destination, Time.deltaTime * 32f);
 
             if (IsMerging && dist < GetComponent<RectTransform>().sizeDelta.x / 2)
             {
