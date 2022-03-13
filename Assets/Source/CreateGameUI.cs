@@ -109,6 +109,30 @@ public class CreateGameUI : MonoBehaviour
         Initialized = true;
     }
 
+    string FormatNumber(int number)
+    {
+        string result;
+        if (number > 1000000000) { result = (number / 1000000000f).ToString("###.#") + "b"; }
+        else if (number > 1000000) { result = (number / 1000000f).ToString("###.#") + "m"; }
+        else if (number > 1000) { result = (number / 1000f).ToString("###.#") + "k"; }
+        else result = number.ToString();
+
+        return result;
+    }
+
+    string FormatNumber(long number)
+    {
+        string result;
+        if (number > 1000000000000000L) { result = (number / 1000000000000000f).ToString("###.#") + "q"; }
+        else if (number > 1000000000000L) { result = (number / 1000000000000f).ToString("###.#") + "t"; }
+        else if (number > 1000000000L) { result = (number / 1000000000f).ToString("###.#") + "b"; }
+        else if (number > 1000000L) { result = (number / 1000000f).ToString("###.#") + "m"; }
+        else if (number > 1000L) { result = (number / 1000f).ToString("###.#") + "k"; }
+        else result = number.ToString();
+
+        return result;
+    }
+
     public void CreateRandomTile(int value = 2)
     {
         List<Vector2Int> FreeTiles = new List<Vector2Int>();
