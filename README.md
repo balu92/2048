@@ -12,3 +12,4 @@
 * End game / restart / continue
 * Clean up the code
 * Lower framerate target until there's input
+* Take camera cutouts into account for layout
